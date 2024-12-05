@@ -3,7 +3,6 @@ import os
 from PyQt6.QtWidgets import QApplication, QMessageBox
 from ui.main_window import MainWindow
 from utils.config_manager import ConfigManager
-from models.course_manager import CourseManager
 
 def main():
     try:

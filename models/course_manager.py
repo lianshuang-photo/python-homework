@@ -54,6 +54,8 @@ class CourseManager:
                  course.day_of_week, course.start_time.strftime('%H:%M'),
                  course.end_time.strftime('%H:%M'), course.description,
                  course.color))
+        # 清除缓存
+        self._clear_cache()
         return True
     
     def _parse_weeks(self, weeks_str: str) -> list:
@@ -122,6 +124,8 @@ class CourseManager:
                   course.day_of_week, course.start_time.strftime('%H:%M'),
                   course.end_time.strftime('%H:%M'), course.description,
                   course.color, course_id))
+        # 清除缓存
+        self._clear_cache()
         return True
     
     def delete_course(self, course_id: int) -> bool:
@@ -130,6 +134,8 @@ class CourseManager:
             with sqlite3.connect(self.db_path) as conn:
                 conn.execute("DELETE FROM courses WHERE id=?", (course_id,))
                 conn.execute("DELETE FROM feedback WHERE course_id=?", (course_id,))
+            # 清除缓存
+            self._clear_cache()
             return True
         except sqlite3.Error:
             return False
@@ -189,6 +195,6 @@ class CourseManager:
             print(f"清空课程失败: {e}")
             return False
     
-    def clear_cache(self):
+    def _clear_cache(self):
         """清除缓存"""
         self._cache.clear()

@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                              QTableWidget, QTableWidgetItem, QPushButton,
                              QLineEdit, QLabel, QFrame, QMessageBox, QMenu, QFileDialog, QMenuBar, QDialog, QComboBox, QHeaderView,
-                             QApplication, QStackedWidget)
+                             QApplication)
 from PyQt6.QtCore import Qt, QTimer, QRect, QPoint
 from PyQt6.QtGui import (QColor, QFont, QIcon, QAction, QPainter, QPdfWriter,
                         QPixmap, QRegion, QPageSize, QKeySequence, QShortcut)
@@ -20,7 +20,6 @@ from ui.theme_dialog import ThemeDialog
 from ui.sync_dialog import SyncDialog
 from ui.share_dialog import ShareDialog
 from ui.guide_dialog import GuideDialog
-from .calendar_view import CalendarView
 
 class CourseCard(QFrame):
     """课程卡片组件"""
@@ -80,7 +79,7 @@ class CourseCard(QFrame):
         self.setStyleSheet("""
             QFrame {
                 background-color: #f8f9fa;
-                border: 1px solid #e2e2e2;  # 使用边框替代阴影
+                border: 1px solid #e2e2e2;
                 border-radius: 6px;
             }
         """)
@@ -136,6 +135,7 @@ class CourseCard(QFrame):
         self.setStyleSheet("""
             QFrame {
                 background-color: #e8f0fe;
+                border: 1px solid #e2e2e2;
                 border-radius: 6px;
             }
         """)
@@ -146,6 +146,7 @@ class CourseCard(QFrame):
         self.setStyleSheet("""
             QFrame {
                 background-color: #f8f9fa;
+                border: 1px solid #e2e2e2;
                 border-radius: 6px;
             }
         """)
@@ -578,15 +579,27 @@ class MainWindow(QMainWindow):
                         start_time=datetime.strptime(course_data['start_time'], '%H:%M').time(),
                         end_time=datetime.strptime(course_data['end_time'], '%H:%M').time(),
                         description=course_data.get('description', ''),  # 使用get方法处理可选字段
-                        score=course_data.get('score', 0)
+                        score=course_data.get('score', 0.0),
+                        feedback=course_data.get('feedback', []),
+                        color=course_data.get('color', '#e3f2fd')
                     )
                     self.course_manager.add_course(course)
                 
+                # 导入完成后立即刷新显示
                 self.load_courses()
-                QMessageBox.information(self, "导入成功", "课表导入成！")
+                
+                QMessageBox.information(
+                    self,
+                    "导入成功",
+                    "课表导入成功！"
+                )
                 
             except Exception as e:
-                QMessageBox.warning(self, "导入失败", f"导入课表时发生错误：{str(e)}")
+                QMessageBox.critical(
+                    self,
+                    "导入失败",
+                    f"导入课表时发生错误：\n{str(e)}"
+                )
 
     def on_custom_clicked(self):
         """显示主题设置对话框"""
@@ -601,33 +614,33 @@ class MainWindow(QMainWindow):
 
     def on_week_changed(self, index):
         """周次下拉框改变事件"""
-        if index == 0:  # 总课表
-            self.current_week = 0
-            self.prev_week_btn.setEnabled(False)
-            self.next_week_btn.setEnabled(False)
-        else:
-            self.current_week = index
-            self.update_week_nav_buttons()
+        self.current_week = index
+        self.update_week_nav_buttons()
+        # 切换周次后立即刷新显示
         self.load_courses()
-
-    def update_week_nav_buttons(self):
-        """更新周次导航按钮状态"""
-        self.prev_week_btn.setEnabled(self.current_week > 1)
-        self.next_week_btn.setEnabled(self.current_week < 20)
-
+        
     def previous_week(self):
         """切换到上一周"""
-        if self.current_week > 1:
+        if self.current_week > 0:
             self.current_week -= 1
-            self.week_combo.setCurrentIndex(self.current_week - 1)
+            self.week_combo.setCurrentIndex(self.current_week)
+            self.update_week_nav_buttons()
+            # 切换周次后立即刷新显示
             self.load_courses()
-
+            
     def next_week(self):
         """切换到下一周"""
-        if self.current_week < 20:
+        if self.current_week < self.week_combo.count() - 1:
             self.current_week += 1
-            self.week_combo.setCurrentIndex(self.current_week - 1)
+            self.week_combo.setCurrentIndex(self.current_week)
+            self.update_week_nav_buttons()
+            # 切换周次后立即刷新显示
             self.load_courses()
+        
+    def update_week_nav_buttons(self):
+        """更新周次导航按钮状态"""
+        self.prev_week_btn.setEnabled(self.current_week > 0)
+        self.next_week_btn.setEnabled(self.current_week < self.week_combo.count() - 1)
 
     def setup_ui(self):
         self.setWindowTitle("课表管理系统")
@@ -744,32 +757,6 @@ class MainWindow(QMainWindow):
         self.table = CustomTableWidget()
         self.setup_table()
         main_layout.addWidget(self.table)
-
-        # 添加视图切换按钮
-        view_buttons = QWidget()
-        view_layout = QHBoxLayout(view_buttons)
-        
-        self.table_view_btn = QPushButton("表格视图")
-        self.calendar_view_btn = QPushButton("日历视图")
-        
-        view_layout.addWidget(self.table_view_btn)
-        view_layout.addWidget(self.calendar_view_btn)
-        
-        # 创建视图容器
-        self.view_stack = QStackedWidget()
-        self.table_view = self.table  # 原有的表格视图
-        self.calendar_view = CalendarView(self.course_manager)
-        
-        self.view_stack.addWidget(self.table_view)
-        self.view_stack.addWidget(self.calendar_view)
-        
-        # 连接信号
-        self.table_view_btn.clicked.connect(lambda: self.view_stack.setCurrentWidget(self.table_view))
-        self.calendar_view_btn.clicked.connect(lambda: self.view_stack.setCurrentWidget(self.calendar_view))
-        
-        # 更新布局
-        toolbar_layout.addWidget(view_buttons)
-        main_layout.addWidget(self.view_stack)
 
     def setup_menu(self):
         """设置菜单栏"""
