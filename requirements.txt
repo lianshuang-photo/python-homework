@@ -1,0 +1,10 @@
+PyQt6==6.5.2
+icalendar==5.0.7
+reportlab==4.0.4
+requests==2.31.0
+python-dateutil==2.8.2
+google-auth-oauthlib==1.0.0
+google-auth-httplib2==0.1.0
+google-api-python-client==2.97.0
+qrcode==7.4.2
+Pillow==9.5.0  # 使用较早的稳定版本
