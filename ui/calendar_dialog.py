@@ -33,6 +33,30 @@ class CourseCalendarDialog(QDialog):
         # 设置按钮容器
         settings_container = QWidget()
         settings_container.setObjectName("settingsContainer")
+        settings_container.setStyleSheet("""
+            QWidget#settingsContainer {
+                background-color: #f8f9fa;
+                border: 1px solid #e2e2e2;
+                border-radius: 6px;
+                margin: 0 0 10px 0;
+            }
+            QPushButton#settingsButton {
+                background-color: transparent;
+                border: none;
+                color: #333;
+                font-size: 14px;
+                padding: 0;
+                text-align: center;
+                width: 100%;
+                height: 36px;
+                line-height: 36px;
+                margin: 0;
+            }
+            QPushButton#settingsButton:hover {
+                background-color: #f1f3f4;
+                border-radius: 4px;
+            }
+        """)
         settings_layout = QHBoxLayout(settings_container)
         settings_layout.setContentsMargins(0, 0, 0, 0)
         settings_layout.setSpacing(0)
@@ -41,13 +65,9 @@ class CourseCalendarDialog(QDialog):
         settings_btn = QPushButton("设置开学时间")
         settings_btn.setObjectName("settingsButton")
         settings_btn.clicked.connect(self.show_settings)
-        settings_btn.setCursor(Qt.CursorShape.PointingHandCursor)  # 添加手型光标
+        settings_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        settings_btn.setFixedHeight(36)  # 固定按钮高度
         
-        # 添加图标
-        icon_label = QLabel("⚙️")
-        icon_label.setObjectName("settingsIcon")
-        
-        settings_layout.addWidget(icon_label)
         settings_layout.addWidget(settings_btn)
         left_layout.addWidget(settings_container)
         
@@ -66,6 +86,27 @@ class CourseCalendarDialog(QDialog):
         # 右侧课程列表
         right_widget = QWidget()
         right_widget.setObjectName("rightPanel")
+        right_widget.setStyleSheet("""
+            QWidget#rightPanel {
+                background-color: #fff;
+                border-left: 1px solid #e2e2e2;
+                padding: 20px;
+            }
+            QLabel#dateLabel {
+                font-size: 24px;
+                font-weight: 500;
+                color: #333;
+                margin-bottom: 15px;
+                padding: 0;
+            }
+            QWidget#courseListContainer {
+                background-color: #f8f9fa;
+                border: 1px solid #e2e2e2;
+                border-radius: 6px;
+                padding: 15px;
+                margin-top: 10px;
+            }
+        """)
         right_layout = QVBoxLayout(right_widget)
         right_layout.setSpacing(10)
         right_layout.setContentsMargins(20, 20, 20, 20)
@@ -312,7 +353,7 @@ class CourseCalendarDialog(QDialog):
                 background: none;
             }
             
-            /* 课程卡片样式 */
+            /* 课程卡样式 */
             QWidget#courseCard {
                 border-radius: 15px;
             }
@@ -441,37 +482,36 @@ class CourseCalendarDialog(QDialog):
             min(base_color.red() + 30, 255),
             min(base_color.green() + 30, 255),
             min(base_color.blue() + 30, 255),
-            30  # 降低不透明度使颜色更柔和
+            30
         )
         
         card.setStyleSheet(f"""
             QWidget#courseCard {{
                 background-color: {light_color.name()};
-                border-radius: 15px;
-                padding: 15px;
-            }}
-            QLabel {{
-                color: #444;
-                background: transparent;
+                border-radius: 8px;
+                padding: 16px;
             }}
             QLabel#courseTitle {{
-                font-size: 16px;
+                font-size: 15px;
                 font-weight: bold;
                 color: #333;
+                padding: 0;
             }}
             QLabel#courseInfo {{
-                font-size: 14px;
+                font-size: 13px;
                 color: #666;
+                padding: 2px 0;
             }}
         """)
         
         layout = QVBoxLayout(card)
-        layout.setSpacing(8)
-        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setSpacing(6)
+        layout.setContentsMargins(12, 12, 12, 12)
         
-        # 课程名称
+        # 课程名称（使用QLabel的elide属性处理长文本）
         name_label = QLabel(course.name)
         name_label.setObjectName("courseTitle")
+        name_label.setWordWrap(True)  # 允许文字换行
         layout.addWidget(name_label)
         
         # 时间信息

@@ -548,7 +548,7 @@ class MainWindow(QMainWindow):
                         """)
 
     def on_import_clicked(self):
-        """��入课表"""
+        """入课表"""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "导入课表",
@@ -869,9 +869,20 @@ class MainWindow(QMainWindow):
         header.setFixedHeight(40)  # 减小表头高度
         header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)  # 自动拉伸列宽
         
+        # 设置垂直表头样式
         v_header = self.table.verticalHeader()
         v_header.setDefaultAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         v_header.setFixedWidth(100)  # 减小垂直表头宽度
+        v_header.setStyleSheet("""
+            QHeaderView::section {
+                padding: 4px;
+                border: none;
+                border-right: 1px solid #e2e2e2;
+                border-bottom: 1px solid #e2e2e2;
+                background-color: white;
+                font-size: 13px;
+            }
+        """)
         
         # 启用双击事件
         self.table.cellDoubleClicked.connect(self.on_cell_double_clicked)
@@ -930,7 +941,7 @@ class MainWindow(QMainWindow):
                 if item:
                     item.setBackground(QColor("#ffffff"))
         
-        # 高亮��前单元格
+        # 高亮当前单元格
         if self.table.cellWidget(row, column) is None:
             item = self.table.item(row, column)
             if not item:
