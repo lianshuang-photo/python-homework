@@ -1,0 +1,49 @@
+{
+    "term_start": "2024-09-09",
+    "holidays": {
+        "2024-04-04": {
+            "name": "清明节",
+            "type": "holiday"
+        },
+        "2024-04-05": {
+            "name": "清明节",
+            "type": "holiday"
+        },
+        "2024-04-06": {
+            "name": "清明节",
+            "type": "holiday"
+        },
+        "2024-05-01": {
+            "name": "劳动节",
+            "type": "holiday"
+        },
+        "2024-05-02": {
+            "name": "劳动节",
+            "type": "holiday"
+        },
+        "2024-05-03": {
+            "name": "劳动节",
+            "type": "holiday"
+        },
+        "2024-05-04": {
+            "name": "劳动节",
+            "type": "holiday"
+        },
+        "2024-05-05": {
+            "name": "劳动节",
+            "type": "holiday"
+        },
+        "2024-06-10": {
+            "name": "端午节",
+            "type": "holiday"
+        },
+        "2024-06-11": {
+            "name": "端午节",
+            "type": "holiday"
+        },
+        "2024-06-12": {
+            "name": "端午节",
+            "type": "holiday"
+        }
+    }
+}

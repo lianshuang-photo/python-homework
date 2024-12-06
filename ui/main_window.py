@@ -20,6 +20,7 @@ from ui.theme_dialog import ThemeDialog
 from ui.sync_dialog import SyncDialog
 from ui.share_dialog import ShareDialog
 from ui.guide_dialog import GuideDialog
+from .calendar_dialog import CourseCalendarDialog
 
 class CourseCard(QFrame):
     """课程卡片组件"""
@@ -644,15 +645,15 @@ class MainWindow(QMainWindow):
 
     def setup_ui(self):
         self.setWindowTitle("课表管理系统")
-        self.setMinimumSize(1200, 800)
+        self.setMinimumSize(1400, 770)
         
         # 设置窗口位置到屏幕中央偏上位置
         screen = QApplication.primaryScreen().geometry()
         self.setGeometry(
-            (screen.width() - 1200) // 2,
-            (screen.height() - 800) // 3,  # 向上偏移，避免被 Dock 遮挡
-            1200,
-            800
+            (screen.width() - 1400) // 2,
+            (screen.height() - 770) // 3,  # 向上偏移，避免被 Dock 遮挡
+            1400,
+            770
         )
         
         # 创建中心部件
@@ -686,9 +687,13 @@ class MainWindow(QMainWindow):
         
         self.custom_btn = QPushButton("自定义主题")
         
+        self.calendar_btn = QPushButton("课程日历")
+        self.calendar_btn.clicked.connect(self.show_calendar)
+        
         left_layout.addWidget(self.sync_btn)
         left_layout.addWidget(self.share_btn)
         left_layout.addWidget(self.custom_btn)
+        left_layout.addWidget(self.calendar_btn)
         
         # 连接信号
         self.sync_btn.clicked.connect(self.show_sync_dialog)
@@ -950,6 +955,11 @@ class MainWindow(QMainWindow):
     def show_share_dialog(self):
         """显示分享对话框"""
         dialog = ShareDialog(self.course_manager, self)
+        dialog.exec()
+
+    def show_calendar(self):
+        """显示课程日历对话框"""
+        dialog = CourseCalendarDialog(self.course_manager, self)
         dialog.exec()
 
     def setup_shortcuts(self):
