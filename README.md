@@ -97,7 +97,7 @@
 ### 2. 安装步骤
 ```bash
 # 克隆项目
-git clone https://github.com/lianshuang-photo/python-homework.git
+git clone https://github.com/username/course-manager.git
 cd course-manager
 
 # 创建虚拟环境

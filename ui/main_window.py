@@ -21,6 +21,7 @@ from ui.sync_dialog import SyncDialog
 from ui.share_dialog import ShareDialog
 from ui.guide_dialog import GuideDialog
 from .calendar_dialog import CourseCalendarDialog
+from models.backup_manager import BackupManager
 
 class CourseCard(QFrame):
     """课程卡片组件"""
@@ -160,6 +161,9 @@ class MainWindow(QMainWindow):
             self.course_manager = CourseManager()
             self.current_week = 1  # 当前周次
             self.theme_manager = ThemeManager()
+            
+            # 初始化backup_manager
+            self.backup_manager = BackupManager("courses.db")
             
             # 随机选择一个主题
             import random
@@ -544,7 +548,7 @@ class MainWindow(QMainWindow):
                         """)
 
     def on_import_clicked(self):
-        """导入课表"""
+        """��入课表"""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "导入课表",
@@ -926,7 +930,7 @@ class MainWindow(QMainWindow):
                 if item:
                     item.setBackground(QColor("#ffffff"))
         
-        # 高亮当前单元格
+        # 高亮��前单元格
         if self.table.cellWidget(row, column) is None:
             item = self.table.item(row, column)
             if not item:
