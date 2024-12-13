@@ -57,21 +57,32 @@ class FeedbackDialog(QDialog):
         """加载历史反馈"""
         main_window = self.parent()
         if hasattr(main_window, 'course_manager'):
+            # 获取评分和反馈
             feedback_list = main_window.course_manager.get_feedback(self.course.id)
+            
+            # 显示历史反馈
             feedback_text = ""
-            for content, created_at in feedback_list:
+            for content, score, created_at in feedback_list:
                 date = datetime.fromisoformat(created_at).strftime('%Y-%m-%d %H:%M')
-                feedback_text += f"[{date}]\n{content}\n\n"
+                feedback_text += f"[{date}] 评分：{score:.1f}\n{content}\n\n"
             self.feedback_list.setText(feedback_text)
             
+            # 如果有历史评分，显示最新的评分
+            if feedback_list:
+                latest_score = feedback_list[0][1]  # 最新的评分
+                self.score_slider.setValue(int(latest_score * 10))
+                self.score_value.setText(f"{latest_score:.1f}")
+        
     def submit_feedback(self):
         """提交评分和反馈"""
         score = self.score_slider.value() / 10
         feedback = self.feedback_edit.toPlainText()
         
+        if not feedback.strip():
+            return
+        
         main_window = self.parent()
         if hasattr(main_window, 'course_manager'):
-            if feedback:
-                main_window.course_manager.add_feedback(self.course.id, feedback)
-            main_window.course_manager.update_score(self.course.id, score)
-            self.accept()
+            if main_window.course_manager.add_feedback(self.course.id, feedback, score):
+                self.load_feedback()  # 重新加载显示最新反馈
+                self.feedback_edit.clear()  # 清空输入框

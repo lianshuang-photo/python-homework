@@ -13,6 +13,36 @@ class CourseManager:
     def _init_db(self):
         """初始化数据库"""
         with sqlite3.connect(self.db_path) as conn:
+            # 创建临时表
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS feedback_new (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    course_id INTEGER,
+                    content TEXT,
+                    score REAL DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (course_id) REFERENCES courses (id)
+                )
+            """)
+            
+            # 检查是否存在旧的feedback表
+            cursor = conn.execute("""
+                SELECT name FROM sqlite_master 
+                WHERE type='table' AND name='feedback'
+            """)
+            if cursor.fetchone():
+                # 复制旧数据到新表
+                conn.execute("""
+                    INSERT INTO feedback_new (id, course_id, content, created_at)
+                    SELECT id, course_id, content, created_at FROM feedback
+                """)
+                # 删除旧表
+                conn.execute("DROP TABLE feedback")
+            
+            # 重命名新表
+            conn.execute("ALTER TABLE feedback_new RENAME TO feedback")
+            
+            # 创建或更新courses表
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS courses (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,16 +56,6 @@ class CourseManager:
                     description TEXT,
                     score REAL DEFAULT 0,
                     color TEXT
-                )
-            """)
-            
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS feedback (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    course_id INTEGER,
-                    content TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (course_id) REFERENCES courses (id)
                 )
             """)
     
@@ -134,7 +154,7 @@ class CourseManager:
             with sqlite3.connect(self.db_path) as conn:
                 conn.execute("DELETE FROM courses WHERE id=?", (course_id,))
                 conn.execute("DELETE FROM feedback WHERE course_id=?", (course_id,))
-            # 清除缓存
+            # 清��缓存
             self._clear_cache()
             return True
         except sqlite3.Error:
@@ -150,13 +170,18 @@ class CourseManager:
             """, (f"%{keyword}%", f"%{keyword}%", f"%{keyword}%"))
             return [self._row_to_course(row) for row in cursor.fetchall()]
     
-    def add_feedback(self, course_id: int, content: str) -> bool:
+    def add_feedback(self, course_id: int, content: str, score: float) -> bool:
         """添加课程反馈"""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 conn.execute(
-                    "INSERT INTO feedback (course_id, content) VALUES (?, ?)",
-                    (course_id, content)
+                    "INSERT INTO feedback (course_id, content, score) VALUES (?, ?, ?)",
+                    (course_id, content, score)
+                )
+                # 更新课程的最新评分
+                conn.execute(
+                    "UPDATE courses SET score = ? WHERE id = ?",
+                    (score, course_id)
                 )
             return True
         except sqlite3.Error:
@@ -177,13 +202,23 @@ class CourseManager:
     def get_feedback(self, course_id: int) -> List[tuple]:
         """获取课程反馈"""
         with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.execute("""
-                SELECT content, created_at 
-                FROM feedback 
-                WHERE course_id = ?
-                ORDER BY created_at DESC
-            """, (course_id,))
-            return cursor.fetchall()
+            try:
+                cursor = conn.execute("""
+                    SELECT content, score, created_at 
+                    FROM feedback 
+                    WHERE course_id = ?
+                    ORDER BY created_at DESC
+                """, (course_id,))
+                return cursor.fetchall()
+            except sqlite3.OperationalError:
+                # 如果score列不存在，返回带默认评分的结果
+                cursor = conn.execute("""
+                    SELECT content, created_at 
+                    FROM feedback 
+                    WHERE course_id = ?
+                    ORDER BY created_at DESC
+                """, (course_id,))
+                return [(content, 0.0, created_at) for content, created_at in cursor.fetchall()]
     
     def clear_courses(self):
         """清空所有课程"""
@@ -198,3 +233,13 @@ class CourseManager:
     def _clear_cache(self):
         """清除缓存"""
         self._cache.clear()
+    
+    def get_course_score(self, course_id: int) -> Optional[float]:
+        """获取课程评分"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute(
+                "SELECT score FROM courses WHERE id = ?",
+                (course_id,)
+            )
+            result = cursor.fetchone()
+            return result[0] if result else None

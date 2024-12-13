@@ -2,6 +2,7 @@ import json
 import os
 from typing import List, Optional
 from models import Course
+import sqlite3
 
 class Database:
     def __init__(self, filename: str = 'courses.json'):
@@ -65,3 +66,13 @@ class Database:
     def set_rating(self, course: Course, rating: float):
         course.rating = rating
         self.save_data()
+
+    def get_course_score(self, course_id: int) -> Optional[float]:
+        """获取课程评分"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute(
+                "SELECT score FROM courses WHERE id = ?",
+                (course_id,)
+            )
+            result = cursor.fetchone()
+            return result[0] if result else None
